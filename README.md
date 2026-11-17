@@ -1,5 +1,6 @@
 # Callsign Trainer
 
+BGATC presents you:
 A Duolingo-style trainer for aircraft **ICAO designators ↔ radio callsigns** (e.g. `RYR` = *Ryanair*). One self-contained HTML file: no server, no account, no install.
 
 **Open the app:** https://jasper-acc.github.io/Callsign-Trainer/
