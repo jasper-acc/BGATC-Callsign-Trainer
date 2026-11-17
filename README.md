@@ -3,7 +3,7 @@
 BGATC presents you:
 A Duolingo-style trainer for aircraft **ICAO designators ↔ radio callsigns** (e.g. `RYR` = *Ryanair*). One self-contained HTML file: no server, no account, no install.
 
-**Open the app:** https://jasper-acc.github.io/Callsign-Trainer/
+**Open the app:** https://jasper-acc.github.io/BGATC-Callsign-Trainer/
 
 ## Features
 - 443 built-in callsigns, with airline name and country shown in the Library (not in the quiz)
