@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b6bcb">
+<title>Callsign Trainer</title>
+<style>
+:root{--bg:#f3f6fa;--card:#fff;--tx:#1b2733;--mu:#6b7a8a;--pr:#0b6bcb;--prd:#084f96;--ok:#2e9e4f;--okbg:#dff5e5;--bad:#d64545;--badbg:#fde4e4;--bd:#dde4ec;--soft:#eaf1f9}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1720;--card:#18222e;--tx:#e8eef4;--mu:#8fa0b2;--pr:#4aa3ff;--prd:#2a6fb8;--ok:#4cc277;--okbg:#153324;--bad:#ff7070;--badbg:#3a1d1f;--bd:#2a3846;--soft:#1f2c3a}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+#app{max-width:560px;margin:0 auto;padding:14px 14px 90px;min-height:100vh}
+h1{font-size:22px;margin:4px 0 2px}h2{font-size:17px;margin:18px 0 8px}
+.mu{color:var(--mu)}.small{font-size:13px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:10px 0}
+.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
+.chips{display:flex;gap:8px}.chip{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;text-align:center}
+.chip b{display:block;font-size:22px}.chip span{font-size:12px;color:var(--mu)}
+.pbar{height:12px;background:var(--soft);border-radius:8px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--ok);border-radius:8px;transition:width .3s}
+button,.btn{font:inherit;cursor:pointer}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:13px 16px;font-weight:700;color:#fff;background:var(--pr);box-shadow:0 4px 0 var(--prd);margin:10px 0 6px;text-align:center}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--prd)}
+.btn.sec{background:var(--card);color:var(--pr);border:2px solid var(--bd);box-shadow:0 3px 0 var(--bd)}
+.btn.ok{background:var(--ok);box-shadow:0 4px 0 #1f7a3a}.btn.bad{background:var(--bad);box-shadow:0 4px 0 #a33}
+.btn.sm{display:inline-block;width:auto;padding:7px 12px;font-size:14px;margin:2px}
+.btn[disabled]{opacity:.5}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:10px 4px;color:var(--mu);font-size:12px}
+nav button b{display:block;font-size:20px}nav button.on{color:var(--pr);font-weight:700}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:14px}.top .pbar{flex:1}
+.x{border:0;background:none;font-size:22px;color:var(--mu)}
+.qcard{text-align:center;padding:18px 8px}
+.qlabel{color:var(--mu);font-size:14px;margin-bottom:10px}
+.prompt{font-size:38px;font-weight:800;letter-spacing:1px;word-break:break-word}
+.spk{border:2px solid var(--bd);background:var(--card);border-radius:50%;width:48px;height:48px;font-size:22px;margin-top:8px}
+.spk.big{width:90px;height:90px;font-size:40px}
+.opts{display:grid;gap:10px;margin-top:14px}
+.opt{border:2px solid var(--bd);background:var(--card);color:var(--tx);border-radius:14px;padding:14px;font-size:18px;font-weight:600;box-shadow:0 3px 0 var(--bd);text-align:left}
+.opt i{color:var(--mu);font-style:normal;margin-right:10px;font-size:13px}
+.opt.good{border-color:var(--ok);background:var(--okbg)}.opt.wrong{border-color:var(--bad);background:var(--badbg)}
+.inp{display:flex;gap:8px;margin-top:14px}
+input[type=text],input:not([type]),select{font:inherit;width:100%;padding:13px;border-radius:12px;border:2px solid var(--bd);background:var(--card);color:var(--tx)}
+input:focus{outline:none;border-color:var(--pr)}
+.mic{flex:0 0 52px;border:2px solid var(--bd);background:var(--card);border-radius:12px;font-size:22px}.mic.rec{background:var(--badbg);border-color:var(--bad)}
+.fb{position:fixed;left:0;right:0;bottom:0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));z-index:5}
+.fb>div{max-width:560px;margin:0 auto}.fb.ok{background:var(--okbg)}.fb.bad{background:var(--badbg)}
+.fb h3{margin:0 0 4px}.fb.ok h3{color:var(--ok)}.fb.bad h3{color:var(--bad)}
+.item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--bd)}
+.item .c{font-weight:800;width:52px}.item .t{flex:1;min-width:0}.item .t div:first-child{font-weight:600}
+.dots{display:flex;gap:2px}.dots s{width:7px;height:7px;border-radius:50%;background:var(--bd);display:block}.dots s.f{background:var(--ok)}
+.ib{border:0;background:none;font-size:16px;padding:4px 6px;color:var(--mu)}
+.bars{display:flex;gap:4px;align-items:flex-end;height:90px}.bars div{flex:1;background:var(--soft);border-radius:4px 4px 0 0;position:relative;min-height:3px}.bars div i{position:absolute;bottom:0;left:0;right:0;background:var(--ok);border-radius:4px 4px 0 0}
+.lbl{display:flex;gap:4px}.lbl span{flex:1;text-align:center;font-size:10px;color:var(--mu)}
+label.ck{display:flex;gap:8px;align-items:center;padding:5px 0}label.ck input{width:20px;height:20px}
+.toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:#1b2733;color:#fff;padding:10px 16px;border-radius:12px;z-index:20;font-size:14px;max-width:90%}
+.banner{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:13px;margin:10px 0}
+details summary{cursor:pointer;font-weight:700;padding:4px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.big{font-size:44px;font-weight:800;text-align:center;margin:8px 0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+'use strict';
+
+/* ============ DEFAULT LIST (code, callsign, airline, country) - from the Drive sheet "Callsigns"; names via vradar/OpenFlights ============ */
+const DEFAULTS=[["AAB","Abelag","Luxaviation Belgium",""],["AAE","Euroviking","Air Atlanta Europe",""],["AAF","Aigle Azur","Aigle Azur","France"],["AAL","American","American Airlines","United States"],["AAO","Hero","Alpha Aviation",""],["AAR","Asiana","Asiana Airlines","South Korea"],["ABB","Air Belgium","Air Belgium",""],["ABD","Atlanta","Air Atlanta Icelandic","Iceland"],["ABF","Skywings","Scanwings OY","Finland"],["ABP","Bair","ABS Jets","Czech Republic"],["ABR","Contract","ASL Airlines Ireland","Ireland"],["ABV","Cargo Blue","ASL Airlines UK",""],["ABW","Airbridge Cargo","AirBridgeCargo","Russia"],["ABX","Abex","ABX Air","United States"],["ACA","Air Canada","Air Canada","Canada"],["ACP","Astral Cargo","Astral Aviation","Kenya"],["ADB","Antonov Buro","Antonov Airlines","Ukraine"],["ADN","Aerodienst","Aero-Dienst","Germany"],["ADR","Adria","Adria Airways","Slovenia"],["AEA","Air Europa","Air Europa","Spain"],["AEE","Aegean","Aegean Airlines","Greece"],["AEG","Airest Cargo","Airest",""],["AEH","Vega","Amelia International",""],["AFB","Bulgarian Air Force","Bulgarian Air Force","Bulgaria"],["AFL","Aeroflot","Aeroflot","Russia"],["AFP","Portugese Air Force","Portuguese Air Force","Portugal"],["AFR","Air France","Air France","France"],["AIA","Amelia","Amelia",""],["AIC","Air India","Air India","India"],["AIH","Quantum Sky","AirZeta",""],["AJD","Catch Me","Vista Georgia",""],["AJK","Bambi","Allied Air","Nigeria"],["AJT","Ameri jet","Amerijet International","United States"],["ALE","Alliance Malta","Alliance Executive Jets",""],["ALK","Srilankan","SriLankan Airlines","Sri Lanka"],["AMB","Civil Air Ambulance","Deutsche Rettungsflugwacht","Germany"],["AMC","Air Malta","Air Malta","Malta"],["AME","Airmil","Spanish Air Force","Spain"],["ANA","All Nippon","All Nippon Airways","Japan"],["ANE","Air Nostrum","Air Nostrum","Spain"],["AOA","Air Ocean","Air Ocean Airlines",""],["AOJ","Asterix","Avcon Jet",""],["AOM","Ocean Maroc","Air Ocean Maroc",""],["AQL","Altcargo","Aquila Air Ltd.","Canada"],["ARL","Airlec","Airlec Air Espace","France"],["ASF","Austrian Air Force","Austrian Air Force",""],["ASJ","Aston Jet","AstonJet",""],["ASL","Air Serbia","Air Serbia","Serbia"],["ASR","Sotravia","All Star Airlines, Inc.",""],["ATG","Moldcargo","Aerotranscargo",""],["ATL","Air Bremen","Atlas Air Service",""],["ATV","Avanti Air","Avanti Air","Germany"],["AUA","Austrian","Austrian Airlines","Austria"],["AWC","Zap","Titan Airways","United Kingdom"],["AWH","Aerowest","Aerowest",""],["AWT","Albawings","Albawings",""],["AWU","Syltair","Sylt Air","Germany"],["AXY","Legend","Air X Charter",""],["AZD","Mailman","Zimex Aviation Austria",""],["AZE","Arcus Air","Arcus-Air Logistic","Germany"],["AZG","Silkwest","Silk Way West Airlines",""],["AZV","Azurair","Azur Air",""],["BAF","Belgian Air Force","Belgian Air Force","Belgium"],["BAH","Bahrain","The Amiri Flight","Bahrain"],["BAW","Speedbird","British Airways","United Kingdom"],["BBC","Bangladesh","Biman Bangladesh Airlines","Bangladesh"],["BCI","Blue Island","Blue Islands","United Kingdom"],["BCS","Postman","European Air Transport","Belgium"],["BCY","City Island","CityJet","Ireland"],["BEE","Jersey","Flybe","United Kingdom"],["BEJ","Beejet","",""],["BFD","Media Jet","Bertelsmann",""],["BGA","Beluga","Airbus Transport International","France"],["BGF","Bulgarian Air Force","Aviodetachment-28","Bulgaria"],["BHZ","Alpine Star","",""],["BID","Binair","Binair","Germany"],["BLA","Blue Air","Blue Air",""],["BNI","Bartolini","Alberni Airways","Canada"],["BNJ","Jet Belgium","ASL AirTaxi",""],["BOH","Bohemian","Air Bohemia",""],["BOM","Batman","Haute Aviation",""],["BOO","Bookajet","Bookajet","United Kingdom"],["BOX","German Cargo","Aerologic",""],["BRJ","Bairline","Bairline",""],["BRK","Bartok","Briansk State Air Enterprise","Russia"],["BTI","Baltic","Air Baltic","Latvia"],["BTX","Beetle","Volkswagen AirService",""],["BZE","Zen Star","Zenith Aviation",""],["CAI","Corendon","Corendon Airlines","Turkey"],["CAO","Air China Freight","Air China Cargo","China"],["CAZ","Eurocat","Cat Aviation","Switzerland"],["CBJ","Capital Jet","Beijing Capital Airlines",""],["CCA","Air China","Air China","China"],["CCM","Corsica","Air Corsica","France"],["CEF","Czech Air Force","Czech Air Force","Czech Republic"],["CES","China Eastern","China Eastern Airlines","China"],["CFC","Canforce","Canadian Forces","Canada"],["CFE","Flyer","BA CityFlyer","United Kingdom"],["CFG","Condor","Condor","Germany"],["CGF","Clever","Cargoair",""],["CHG","Challenge","Challenge Airlines",""],["CHH","China Hainan","Hainan Airlines","China"],["CHZ","Cargo Rock","Challenge Air Cargo",""],["CJT","Cargojet","Cargojet Airways","Canada"],["CKK","Cargo King","China Cargo Airlines","China"],["CKS","Konnie","Kalitta Air","United States"],["CLF","Clifton","Centreline","United Kingdom"],["CLG","Challair","Chalair Aviation","France"],["CLX","Cargolux","Cargolux","Luxembourg"],["CMB","Camber","United States Transportation Command",""],["CND","Dutch Correndon","Corendon Dutch Airlines",""],["CNV","Convoy","United States Navy",""],["CPA","Cathay","Cathay Pacific","Hong Kong"],["CSA","CSA","Czech Airlines","Czech Republic"],["CSC","Si Chuan","Sichuan Airlines","China"],["CSN","China Southern","China Southern Airlines","China"],["CSS","Shunfeng","SF Airlines",""],["CTM","Cotam","Commandement Du Transport Aerien Militaire Francais","France"],["CTN","Croatian","Croatia Airlines","Croatia"],["CVK","Cargoline","Cavok Air",""],["CWE","Cargo Wings","Celtic West","United Kingdom"],["CXI","Touristic","Corendon Airlines Europe",""],["CYZ","China Postal","China Postal Airlines","China"],["DAF","Danish Air Force","Danish Air Force","Denmark"],["DAH","Air Algerie","Air Algérie","Algeria"],["DAL","Delta","Delta Air Lines","United States"],["DBT","Star Ship","",""],["DCS","Twin Star","Daimler Chrysler Aviation","Germany"],["DFC","Dark Blue","Aeropartner",""],["DGJ","Digajet","DigaJet",""],["DHK","World Express","DHL Air UK","United Kingdom"],["DHX","Dilmun","DHL International","Bahrain"],["DKH","Air Juneyao","Juneyao Airlines","China"],["DLA","Dolomiti","Air Dolomiti","Italy"],["DLH","Lufthansa","Lufthansa","Germany"],["DLV","Darling","",""],["DNA","Danair","Dan Air",""],["DRC","Leo Parc","Air Congo",""],["DSO","Dassault","Dassault Falcon Service","France"],["DWW","Private Jet","DAS Private Jets",""],["DXE","Black Swan","",""],["EAA","Imola","Eastok Avia","Kyrgyzstan"],["EAI","Gemstone","Emerald Airlines",""],["EAU","Elite","Elitavia Malta",""],["ECA","Dark Knight","OHL Air Charterflug",""],["ECC","Eclair","Eclair Aviation",""],["EFD","Everflight","Eisele Flugdienst","Germany"],["EGL","Prestige","Capital Trading Aviation","United Kingdom"],["EIN","Shamrock","Aer Lingus","Ireland"],["EIX","Stellar","Ei Air Exports","Ireland"],["EJM","Jetspeed","Executive Jet Management","United States"],["EJU","Alpine Star","easyJet Europe",""],["ELG","Elangeni","Alpi Eagles","Italy"],["ELI","Elio","",""],["ELJ","Topjet","Delta Air Elite","United States"],["ELY","El Al","El Al Israel Airlines","Israel"],["ENT","Enter Air","Enter Air",""],["ETD","Etihad","Etihad Airways","United Arab Emirates"],["ETH","Ethiopian","Ethiopian Airlines","Ethiopia"],["ETI","Jethawk","Hummingbird Aviation Services",""],["EUL","Eurolink","Euro Link",""],["EUW","Eurowest","EFS European Flight Service",""],["EWG","Eurowings","Eurowings","Germany"],["EXS","Channex","Jet2.com","United Kingdom"],["EZE","East Flight","Eastern Airways","United Kingdom"],["EZS","Topswiss","easyJet Switzerland",""],["EZY","Easy","easyJet","United Kingdom"],["FAF","French Air Force","Force Aerienne Francaise","France"],["FAH","Blue Strip","Farnair Hungary","Hungary"],["FCA","Coopair","First Choice Airways","United Kingdom"],["FDX","Fedex","Federal Express","United States"],["FEG","Sky Egypt","FlyEgypt","Egypt"],["FHY","Freebird","Freebird Airlines","Turkey"],["FIA","FIA Airlines","FlyOne",""],["FIE","Armrider","FlyOne Armenia",""],["FIN","Finair","Finnair","Finland"],["FJO","Flex Europe","Flexjet Operations Malta",""],["FLD","Dedication","Air Falcon","Pakistan"],["FLJ","Flexair","Flexjet Europe",""],["FLT","Flightavia","Flightline","United Kingdom"],["FMY","French Army","Aviation Legere De L'Armee De Terre","France"],["FNF","Finforce","Finnish Air Force","Finland"],["FNK","Funky","Feniks Airline","Kazakhstan"],["FNY","French Navy","France Marine Nationale","France"],["FOE","First Eagle","FlyOne Romania",""],["FOR","Formula","Formula One Management","United Kingdom"],["FPO","French Post","ASL Airlines France","France"],["FPY","Player","African Company Airlines","DR Congo"],["FRF","Fair Fleet","Fleet Air International",""],["FRO","Frost","FROST Air",""],["FSE","Falco","Alpine Flightservice",""],["FSF","Rocky","Fly7",""],["FTL","Flight Aviation","Flightline",""],["FUU","Blue Sparrow","Fly My Sky",""],["FXT","Flexflight","Flexflight","Denmark"],["FYG","Flying Group","Flying Service","Belgium"],["FYL","Fly Lux","Flying Group Luxembourg",""],["GAC","Dream Team","GlobeAir",""],["GAF","German Air Force","German Air Force","Germany"],["GAJ","Gamma Jet","Wheels Up",""],["GAV","Gravity","Global Reach Aviation",""],["GCK","Glock","GLOCK Aviation",""],["GEC","Lufthansa Cargo","Lufthansa Cargo","Germany"],["GEL","Sky Georgia","Geo Sky",""],["GER","German Eagle","German Airways",""],["GES","Gestair","Gestair","Spain"],["GJE","Global Jet","",""],["GPX","Ivory","GP Aviation",""],["GRB","Gray Bird","Phoenix Air Group",""],["GRV","Night Rider","Epsilon Aviation","Greece"],["GSR","San Marino","",""],["GSS","Cargo Bird","Global Supply Systems","United Kingdom"],["GTI","Giant","Atlas Air","United States"],["GWI","German Wings","Germanwings","Germany"],["HAF","Hellenic Air Force","Hellenic Air Force","Greece"],["HAT","Sky Runner","Air Horizont",""],["HEY","Zonda","ZondaJet",""],["HHN","Rooster","Hahn Air","Germany"],["HKC","Mascot","Hong Kong Air Cargo",""],["HLF","Homeland","Central Airlines",""],["HMJ","Harmony Jet","Harmony Jets",""],["HOP","Air Hop","Air France Hop",""],["HUAF","Hungarian Air Force","Hungarian Air Force","Hungary"],["HUE","Haute","",""],["HYS","Sky Europe","HiSky Europe",""],["IAG","Epag","EPAG","France"],["IAM","Italian Air Force","Italian Air Force","Italy"],["IBE","Iberia","Iberia Airlines","Spain"],["IBK","Nortrans","Norwegian Air International (D8)","Norway"],["IBS","Iberexpress","Iberia Express","Spain"],["ICE","Iceair","Icelandair","Iceland"],["ICL","Cal","Challenge Airlines IL","Israel"],["ICV","Cargolux Italia","Cargolux Italia",""],["IFA","Red Angel","FAI Air Service","Germany"],["IGA","Iguana","Skytaxi","Poland"],["IGO","Ifly","IndiGo Airlines","India"],["IGT","Sky Ika","Georgian Airlines",""],["IJM","Jet Management","International Jet Management","Austria"],["IMX","Zimex","Zimex Aviation","Switzerland"],["IRL","Irish","Irish Air Corps","Ireland"],["JAF","Beauty","TUI fly Belgium","Belgium"],["JAL","Japanair","Japan Airlines","Japan"],["JAR","Airlink","Airlink","Austria"],["JDI","Jedi","Jet Story","Poland"],["JEI","Jet Executive","Jet Executive International Charter","Germany"],["JET","Tradewind","Svenskt Industriflyg AB",""],["JFA","Mosquito","Jetfly Aviation",""],["JFL","Blue Danube","Jetfly Airlines","Austria"],["JFU","Cricket","Jet4You","Morocco"],["JKH","Jetkontor","Jetkontor",""],["JNL","Jet Netherlands","JetNetherlands",""],["JPM","Premier Jet","",""],["JSD","Alpok","B.J. Aviation Slovenia",""],["JSH","Stream Air","Jetstream Air","Hungary"],["JSY","Jung Sky","Jung Sky",""],["JTH","House","",""],["JUP","Jump Air","JumpAir",""],["JVW","Jetview","",""],["KAC","Kuwaiti","Kuwait Airways","Kuwait"],["KAL","Korean Air","Korean Air","South Korea"],["KLC","City Island","KLM Cityhopper","Netherlands"],["KLJ","Class Line","KlasJet",""],["KLM","KLM","KLM","Netherlands"],["KMM","Sky Knight","KM Malta Airlines",""],["KNE","Fly Nas","Flynas",""],["KQA","Kenya","Kenya Airways","Kenya"],["LAV","Alba Star","AlbaStar","Spain"],["LBT","Nouvelair","Nouvel Air Tunisie","Tunisia"],["LCO","Lancargo","LAN Cargo","Chile"],["LDM","Laudamotion","Lauda Motion (Amira Air)",""],["LDX","Laudarush","Sparfell Luftfahrt",""],["LEA","Leadair","Unijet","France"],["LEJ","Regulator","FSH Luftfahrtunternehmen","Germany"],["LGL","Luxair","Luxair","Luxembourg"],["LHA","Air Canton","Longhao Airlines",""],["LNX","Lonex","London Executive Aviation","United Kingdom"],["LOL","Easy Charter","",""],["LOT","Lot","LOT Polish Airlines","Poland"],["LRQ","Lux Rescue","Luxembourg Air Ambulance",""],["LSV","Slovenian Air Force","Slovenian Air Force",""],["LTG","Tamcargo","LATAM Cargo Brasil",""],["LUA","Luminair","Luminair",""],["LUC","Albinati","Albinati Aeronautics",""],["LWG","Luxwings","Luxwing",""],["LXA","Red Lion","Luxaviation","Luxembourg"],["LXG","Luxaviation","Luxaviation Germany",""],["LXJ","Flexjet","Flexjet","United States"],["LYF","Lithuanian Air Force","Lithuanian Air Force","Lithuania"],["LZB","Flying Bulgarian","Bulgaria Air","Bulgaria"],["MAC","Arabia Maroc","Air Arabia Maroc",""],["MAS","Malaysian","Malaysia Airlines","Malaysia"],["MBU","Marabu","Marabu Airlines",""],["MCK","Maverick","Aeroways",""],["MEA","Cedar Jet","Middle East Airlines","Lebanon"],["MFX","White Bird","My Freighter",""],["MHR","Air Shiraz","",""],["MHV","Snow Cap","MHS Aviation GmbH",""],["MJE","Emjet","",""],["MJF","Emexpress","MJet",""],["MJL","Moldjet","Jet Line International","Moldova"],["MMD","Mermaid","Air Alsie","Denmark"],["MMF","Multi","Multinational Multi-Role Tanker Transport Fleet",""],["MNB","Black Sea","MNG Airlines","Turkey"],["MNE","Monteagle","Air Montenegro",""],["MOZ","Mozart","Salzburg Jet Aviation",""],["MPH","Martinair","Martinair","Netherlands"],["MSA","Mistral Wings","Poste Air Cargo",""],["MSR","Egypt Air","Egyptair","Egypt"],["MSX","Egyptair Cargo","Egyptair Cargo","Egypt"],["MTL","Mitavia","RAF-Avia","Latvia"],["MUK","Blue Star","Maersk Air Cargo UK",""],["MVP","Allstar","",""],["NAF","Netherlands Air Force","Royal Netherlands Air Force","Netherlands"],["NAX","Nor Shuttle","Norwegian Air Shuttle","Norway"],["NCA","Nippon Cargo","Nippon Cargo Airlines","Japan"],["NCR","National Cargo","National Airlines",""],["NFA","North Flying","North Flying","Denmark"],["NGN","Yoda","LEAV Aviation",""],["NJE","Fraction","NetJets Europe",""],["NPT","Neptune","West Atlantic","United Kingdom"],["NYX","Nyx Air","NyxAir",""],["OCO","Air College","Ostend Air College","Belgium"],["OSY","Open Skies","Open Skies Consultative Commission","United States"],["OYO","Rogue","Oyonnair",""],["PAV","Brilliant","ProAir Aviation",""],["PGC","green Club","European Aircraft Private Club",""],["PGT","Sunturk","Pegasus Airlines","Turkey"],["PJJ","Skyboss","Paradox Jets",""],["PJS","Jet Aviation","Jet Aviation","Switzerland"],["PLF","Polish Air Force","Polish Air Force","Poland"],["PNC","Prince Aviation","Prince Aviation",""],["POF","Airpol","Police Aux Frontiers","France"],["PTN","Platoon","Platoon Aviation",""],["PVA","Private Air","Aerotransportes Privados","Mexico"],["PVD","Pad Aviation","Pad Aviation Service",""],["PWF","Private Wings","Private Wings Flugcharter","Germany"],["PXR","Pixair","",""],["QAF","Amiri","Qatar Amiri Flight","Qatar"],["QAJ","Dagobert","Quick Air Jet Charter","Germany"],["QFA","Qantas","Qantas","Australia"],["QGA","Quadriga","Windrose Air","Germany"],["RAM","Royal Air Maroc","Royal Air Maroc","Morocco"],["RBA","Brunei","Royal Brunei Airlines","Brunei"],["RCH","Reach","Air Mobility Command","United States"],["RCR","Romcargo","ROM Cargo Airlines",""],["REV","Endurance","RVL Aviation",""],["RFR","Rafair","Royal Air Force","United Kingdom"],["RGN","Cygnus Air","Cygnus Air","Spain"],["RHH","Star Crescent","Redstar Aviation",""],["RJA","Royal Jordanian","Royal Jordanian","Jordan"],["RJB","Panellenic","Panellenic Airlines",""],["RMB","Adriatic Jet","Air Adriatic",""],["RMX","Air Master","Air Max","Bulgaria"],["ROT","Tarom","Tarom","Romania"],["RRR","Ascot","Royal Air Force","United Kingdom"],["RSB","Rubystar","Rubystar","Belarus"],["RUK","Blue Max","Ryanair UK",""],["RUN","Cargo Turk","ACT Airlines","Turkey"],["RWD","Rwandair","RwandAir","Rwanda"],["RYR","Ryanair","Ryanair","Ireland"],["SAH","Smart Jet","Sayakhat Airlines","Kazakhstan"],["SAS","Scandinavian","SAS","Sweden"],["SCR","Silver Cloud","Silver Cloud Air",""],["SEH","Air Crete","Sky Express","Greece"],["SFG","Color Sky","Spree Flug",""],["SFS","Topo","Swiss Flight Services",""],["SIA","Singapore","Singapore Airlines","Singapore"],["SIO","Sirio","Sirio","Italy"],["SLM","Surinam","Surinam Airways","Suriname"],["SRK","Shark Jet","Sky Work Airlines","Switzerland"],["SRN","Sprintair","SprintAir","Poland"],["SRR","Whitestar","Maersk Air Cargo","Denmark"],["SSG","Slovak Government","Slovak Government Flying Service","Slovakia"],["STQ","Star Trek","Star Wings Dortmund",""],["SUA","Air Silesia","Silesia Air","Czech Republic"],["SUI","Swiss Air Force","Swiss Air Force","Switzerland"],["SUS","Sunscan","Sun Air of Scandinavia","Denmark"],["SUZ","Leader","",""],["SVA","Saudia","Saudia","Saudi Arabia"],["SVF","Sweedforce","Swedish Armed Forces","Sweden"],["SVW","Silver Arrow","Global Jet Luxembourg","Luxembourg"],["SWN","Air Sweden","West Atlantic","Sweden"],["SWR","Swiss Air Force","Swiss","Switzerland"],["SWT","Swiftair","Swiftair","Spain"],["SXI","Southern Cross","Southern Cross International",""],["SXN","Saxonair","SaxonAir",""],["SXS","Sunexpress","SunExpress","Turkey"],["SXY","Safari Express","Safari Express Cargo","Kenya"],["TAM","TAM","TAM Brazilian Airlines","Brazil"],["TAP","Air Portugal","TAP Portugal","Portugal"],["TAR","Tunair","Tunisair","Tunisia"],["TAY","Quality","ASL Airlines Belgium","Belgium"],["TDR","Trade Air","Trade Air","Croatia"],["TEU","Tag Malta","TAG Aviation Malta",""],["TFL","Orange","TUI fly Netherlands",""],["THA","Thai","Thai Airways International","Thailand"],["THY","Turkish","Turkish Airlines","Turkey"],["TIE","Timeair","Time Air","Czech Republic"],["TJD","Aliserio","Aliserio",""],["TJT","Twinjet","Twin Jet","France"],["TKJ","Anatolia","AJet",""],["TLJ","Taljet","Thalair",""],["TLK","Starlink","Starlink Aviation",""],["TOM","TOM Jet","TUI Airways",""],["TOY","TOYO Aviation","Toyo Aviation",""],["TRA","Transavia","Transavia","Netherlands"],["TSC","Air Transat","Air Transat","Canada"],["TSR","San Marino","Trans Service Airlift","DR Congo"],["TUAF","Turkish Air Force","Turkish Air Force","Turkey"],["TVF","France Soleil","Transavia France","France"],["TVQ","Slovak Travel","Smartwings Slovakia",""],["TVS","Sky Travel","Smartwings","Czech Republic"],["TWG","Twin Goose","Air-Taxi Europe",""],["TWI","Tailwind","Tailwind Airlines",""],["TYW","Tyrol Ambulance","Tyrol Air Ambulance","Austria"],["UAE","Emirates","Emirates","United Arab Emirates"],["UAL","United","United Airlines","United States"],["UEE","Eagle Slovenia","United Eagle",""],["UKL","Ukraine Alliance","Ukraine Air Alliance","Ukraine"],["UNI","Unicare","Unicair",""],["UPS","UPS","United Parcel Service","United States"],["VIO","Little Prince","Aviator.S5",""],["VIP","Sovereign","TAG Aviation UK","United Kingdom"],["VIR","Virgin","Virgin Atlantic","United Kingdom"],["VJH","Vista Germany","VistaJet Germany",""],["VJT","Vista Jet","Vistajet","Canada"],["VKA","Vulkan Air","Vulkan Air",""],["VLB","Volta","",""],["VLG","Vueling","Vueling Airlines","Spain"],["VLJ","Valjet","VallJet",""],["VMP","Vampire","Execujet Scandinavia","Denmark"],["VND","Avinord","",""],["VOE","Volotea","Volotea","Spain"],["VTB","Suxair","Jet Stream Charter",""],["WEJ","We Jet","",""],["WGN","Western Global","Western Global Airlines",""],["WIF","Wideroe","Widerøe","Norway"],["WKT","White Knight","DEA Aviation",""],["WMT","Wizz Malta","Wizz Air Malta",""],["WZZ","Wizzair","Wizz Air","Hungary"],["XGO","Pastis","AirGO Private Airline",""],["XRO","Cramer","Exxaero",""],["YZR","Yangtze River","Suparna Airlines","China"]];
+
+/* ============ STORAGE ============ */
+const LS='callsign-trainer-v1';
+let memOnly=false;
+const NL2EN={"Algerije":"Algeria","Australië":"Australia","Bahrein":"Bahrain","Bangladesh":"Bangladesh","België":"Belgium","Brazilië":"Brazil","Brunei":"Brunei","Bulgarije":"Bulgaria","Canada":"Canada","Chili":"Chile","China":"China","Congo-Kinshasa":"DR Congo","Denemarken":"Denmark","Duitsland":"Germany","Egypte":"Egypt","Ethiopië":"Ethiopia","Finland":"Finland","Frankrijk":"France","Griekenland":"Greece","Hongarije":"Hungary","Hongkong":"Hong Kong","IJsland":"Iceland","Ierland":"Ireland","India":"India","Israël":"Israel","Italië":"Italy","Japan":"Japan","Jordanië":"Jordan","Kazachstan":"Kazakhstan","Kenia":"Kenya","Kirgizië":"Kyrgyzstan","Koeweit":"Kuwait","Kroatië":"Croatia","Letland":"Latvia","Libanon":"Lebanon","Litouwen":"Lithuania","Luxemburg":"Luxembourg","Maleisië":"Malaysia","Malta":"Malta","Marokko":"Morocco","Mexico":"Mexico","Moldavië":"Moldova","Nederland":"Netherlands","Nigeria":"Nigeria","Noorwegen":"Norway","Oekraïne":"Ukraine","Oostenrijk":"Austria","Pakistan":"Pakistan","Polen":"Poland","Portugal":"Portugal","Qatar":"Qatar","Roemenië":"Romania","Rusland":"Russia","Rwanda":"Rwanda","Saoedi-Arabië":"Saudi Arabia","Servië":"Serbia","Singapore":"Singapore","Slovenië":"Slovenia","Slowakije":"Slovakia","Spanje":"Spain","Sri Lanka":"Sri Lanka","Suriname":"Suriname","Thailand":"Thailand","Tsjechië":"Czech Republic","Tunesië":"Tunisia","Turkije":"Turkey","Verenigd Koninkrijk":"United Kingdom","Verenigde Arabische Emiraten":"United Arab Emirates","Verenigde Staten":"United States","Wit-Rusland":"Belarus","Zuid-Korea":"South Korea","Zweden":"Sweden","Zwitserland":"Switzerland","Scandinavië":"Scandinavia","VAE":"UAE","VK":"United Kingdom","VS":"United States"};
+const enC=c=>NL2EN[c]||c;
+const defItems=()=>DEFAULTS.map(r=>({code:r[0],call:r[1],name:r[2],ctry:r[3]}));
+function fresh(){return{items:defItems(),prog:{},log:{},xp:0,starter:false,
+ set:{types:{c2s:1,s2c:1,aud:1},mode:'auto',len:10,auto:false}}}
+function load(){try{const r=JSON.parse(localStorage.getItem(LS));if(r&&r.items){r.set=Object.assign(fresh().set,r.set||{});
+      if(r.starter){r.items=defItems();r.starter=false}
+      else{const m={};DEFAULTS.forEach(x=>m[x[0]]=x);r.items.forEach(i=>{const x=m[i.code];if(x){if(!i.name)i.name=x[2];if(!i.ctry)i.ctry=x[3]}})}
+      r.items.forEach(i=>{if(i.ctry)i.ctry=enC(i.ctry)});
+      return r}}catch(e){memOnly=true}return fresh()}
+let S=load();
+function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){memOnly=true}}
+
+/* ============ HELPERS ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+const prim=c=>String(c).split(/[\/|]/)[0].trim();
+const alts=c=>String(c).split(/[\/|]/).map(x=>x.trim()).filter(Boolean);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array.from({length:n+1},(_,i)=>i);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+const pad=n=>String(n).padStart(2,'0');
+const dkey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const prog=c=>S.prog[c]||null;
+const isSeen=i=>{const p=prog(i.code);return p&&p.seen>0};
+const isKnown=i=>{const p=prog(i.code);return p&&p.box>=4};
+const knownCount=()=>S.items.filter(isKnown).length;
+function streak(){const d=new Date();let s=0;if(!(S.log[dkey(d)]&&S.log[dkey(d)].n))d.setDate(d.getDate()-1);while(S.log[dkey(d)]&&S.log[dkey(d)].n){s++;d.setDate(d.getDate()-1)}return s}
+function totals(days){let n=0,ok=0;const now=new Date();for(const k in S.log){if(days){const [y,m,d]=k.split('-').map(Number);if((now-new Date(y,m-1,d))/864e5>days)continue}n+=S.log[k].n;ok+=S.log[k].ok}return{n,ok,pct:n?Math.round(ok/n*100):null}}
+let toastT;function toast(m){let t=$('.toast');if(t)t.remove();t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);clearTimeout(toastT);toastT=setTimeout(()=>t.remove(),3200)}
+
+/* ============ SPEECH ============ */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const canTTS=!!window.speechSynthesis;
+function say(t){if(!canTTS)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=.85;speechSynthesis.speak(u)}catch(e){}}
+const NATO={alfa:'a',alpha:'a',bravo:'b',charlie:'c',delta:'d',echo:'e',foxtrot:'f',golf:'g',hotel:'h',india:'i',juliet:'j',juliett:'j',kilo:'k',lima:'l',mike:'m',november:'n',oscar:'o',papa:'p',quebec:'q',romeo:'r',sierra:'s',tango:'t',uniform:'u',victor:'v',whiskey:'w',whisky:'w',xray:'x',yankee:'y',zulu:'z'};
+function spokenToCode(t){return String(t).toLowerCase().replace(/x-ray/g,'xray').split(/[\s\-.,]+/).filter(Boolean).map(w=>NATO[w]||w).join('').replace(/[^a-z0-9]/g,'').toUpperCase()}
+
+/* ============ QUESTIONS ============ */
+const TYPES={c2s:{label:'Code → callsign',need:i=>true},s2c:{label:'Callsign → code',need:i=>true},aud:{label:'Listening → code',need:i=>true,tts:true}};
+function mkQ(it){
+  let ts=Object.keys(TYPES).filter(k=>S.set.types[k]&&TYPES[k].need(it)&&(!TYPES[k].tts||canTTS));
+  if(!ts.length)ts=['c2s'];
+  const type=ts[Math.floor(Math.random()*ts.length)];
+  const q={item:it,type};
+  if(type==='c2s'){q.label='What is the callsign (telephony designator) of this code?';q.pkind='code';q.prompt=it.code;q.akind='call';q.accept=alts(it.call)}
+  if(type==='s2c'){q.label='Which ICAO code belongs to this callsign?';q.pkind='call';q.prompt=prim(it.call);q.akind='code';q.accept=[it.code]}
+  if(type==='aud'){q.label='Listen: which ICAO code is this?';q.pkind='audio';q.prompt='';q.akind='code';q.accept=[it.code]}
+  q.show=q.akind==='code'?it.code:q.akind==='call'?prim(it.call):prim(it.name);
+  const p=prog(it.code),box=p?p.box:0;
+  q.mc=S.set.mode==='mc'||(S.set.mode==='auto'&&box<=1);
+  if(q.mc){
+    const val=x=>q.akind==='code'?x.code:q.akind==='call'?prim(x.call):prim(x.name);
+    const pool=shuffle(S.items.filter(x=>x.code!==it.code&&val(x)&&norm(val(x))!==norm(q.show)));
+    const seenV=new Set(),opts=[];
+    for(const x of pool){const v=val(x);if(!seenV.has(norm(v))){seenV.add(norm(v));opts.push(v)}if(opts.length>=3)break}
+    opts.push(q.show);q.opts=shuffle(opts);
+    if(q.opts.length<2)q.mc=false;
+  }
+  return q;
+}
+function match(kind,accept,raw,via){
+  if(via==='mc')return{ok:accept.some(a=>norm(a)===norm(raw))};
+  if(kind==='code'){const g=via==='voice'?spokenToCode(raw):norm(raw).toUpperCase();return{ok:!!g&&accept.some(a=>norm(a).toUpperCase()===g)}}
+  const g=norm(raw);if(!g)return{ok:false};
+  for(const a of accept){
+    const n=norm(a);if(!n)continue;
+    if(g===n)return{ok:true};
+    const tol=via==='voice'?(n.length>=8?3:n.length>=5?2:n.length>=4?1:0):(n.length>=6?1:0);
+    if(lev(g,n)<=tol)return{ok:true,near:true};
+    if(kind==='name'&&n.length>=5&&g.length>=5&&(n.includes(g)||g.includes(n)))return{ok:true,near:true};
+  }
+  return{ok:false};
+}
+function check(q,raw,via){const c=Array.isArray(raw)?raw:[raw];for(const r of c){const m=match(q.akind,q.accept,r,via);if(m.ok)return m}return{ok:false}}
+
+/* ============ SELECTION (weighted: harder = more often) ============ */
+function weight(it){const p=prog(it.code);if(!p||!p.seen)return 4;const bw=[6,4.5,3,1.8,.9,.4][p.box];const acc=(p.ok+1)/(p.seen+2);let w=bw*(1+2.5*(1-acc));if(Date.now()-p.last<12e4)w*=.3;return w}
+function wpick(arr,wf){let t=0;const w=arr.map(a=>{const x=wf(a);t+=x;return x});let r=Math.random()*t;for(let i=0;i<arr.length;i++){r-=w[i];if(r<=0)return arr[i]}return arr[arr.length-1]}
+function hardPool(){return S.items.filter(i=>{const p=prog(i.code);return p&&p.seen>=1&&(p.ok/p.seen<.75||p.box<=1)})}
+function pickItems(kind){
+  let active,n=S.set.len;
+  const seen=S.items.filter(isSeen),unseen=shuffle(S.items.filter(i=>!isSeen(i)));
+  if(kind==='hard')active=hardPool();
+  else if(kind==='new')active=unseen.slice(0,5);
+  else active=seen.concat(unseen.slice(0,seen.length<6?5:3));
+  if(!active.length)return[];
+  n=Math.min(n,active.length*3);
+  const out=[];
+  for(let k=0;k<n;k++){let it,g=0;do{it=wpick(active,weight)}while(out.length&&out[out.length-1]===it&&active.length>1&&++g<12);out.push(it)}
+  return out;
+}
+
+/* ============ SESSION ============ */
+let libOpen=false,view='home',sess=null,libQ='',form={code:'',call:'',name:'',ctry:'',editing:null},listening=false;
+function startSession(kind){
+  const items=pickItems(kind);
+  if(!items.length){toast(kind==='hard'?'No difficult callsigns yet – practise a few rounds first.':kind==='new'?'You have already seen everything!':'No callsigns available.');return}
+  sess={kind,queue:items,i:0,ok:0,bad:0,missed:{},retried:{},startKnown:knownCount(),fb:null,cur:null};
+  view='session';present();
+}
+function present(){
+  if(sess.i>=sess.queue.length){view='summary';render();return}
+  sess.cur=mkQ(sess.queue[sess.i]);sess.fb=null;render();
+  if(sess.cur.type==='aud'||(S.set.auto&&sess.cur.pkind==='call'))setTimeout(()=>say(prim(sess.cur.item.call)),250);
+}
+function record(it,ok,via){
+  const p=S.prog[it.code]||(S.prog[it.code]={box:0,seen:0,ok:0,streak:0,last:0});
+  p.seen++;p.last=Date.now();
+  if(ok){p.ok++;p.streak++;p.box=via==='mc'?Math.min(p.box+1,Math.max(p.box,3)):Math.min(5,p.box+1)}
+  else{p.streak=0;p.box=Math.max(0,p.box-2)}
+  const k=dkey(new Date());const l=S.log[k]||(S.log[k]={n:0,ok:0});l.n++;if(ok)l.ok++;
+}
+function submit(raw,via){
+  if(!sess||sess.fb)return;
+  const q=sess.cur,res=via==='skip'?{ok:false}:check(q,raw,via);
+  record(q.item,res.ok,via);
+  sess.fb={ok:res.ok,near:res.near,given:via==='skip'?'':(Array.isArray(raw)?raw[0]:raw),via};
+  if(res.ok){sess.ok++;S.xp+=10}else{sess.bad++;sess.missed[q.item.code]=q.item;if(!sess.retried[q.item.code]){sess.retried[q.item.code]=1;sess.queue.push(q.item)}}
+  save();render();
+  if(q.type!=='aud'&&S.set.auto===false&&!res.ok){}
+}
+function next(){sess.i++;present()}
+
+/* ============ SPEECH RECOGNITION ============ */
+function listen(){
+  if(!SR||!sess||sess.fb)return;
+  if(listening){return}
+  const r=new SR();r.lang='en-US';r.maxAlternatives=5;r.interimResults=false;listening=true;updMic();
+  r.onresult=e=>{const alts=[...e.results[0]].map(a=>a.transcript);const inp=$('#ans');if(inp)inp.value=sess&&sess.cur&&sess.cur.akind==='code'?spokenToCode(alts[0]):alts[0];submit(alts,'voice')};
+  r.onerror=e=>{listening=false;updMic();toast(e.error==='not-allowed'?'Microphone blocked – allow access in your browser.':e.error==='no-speech'?'Nothing heard, try again.':'Speech recognition failed ('+e.error+').')};
+  r.onend=()=>{listening=false;updMic()};
+  try{r.start()}catch(e){listening=false;updMic()}
+}
+function updMic(){const m=$('.mic');if(m)m.classList.toggle('rec',listening)}
+
+/* ============ CSV ============ */
+function parseCSV(t){
+  t=t.replace(/^﻿/,'');const first=t.split(/\r?\n/)[0]||'';
+  const d=[';','\t',','].map(c=>[c,first.split(c).length-1]).sort((a,b)=>b[1]-a[1])[0][0];
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;
+    else if(c===d){row.push(f);f=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(f);f='';rows.push(row);row=[]}
+    else f+=c}
+  if(f!==''||row.length){row.push(f);rows.push(row)}
+  return rows.filter(r=>r.some(x=>x.trim()));
+}
+function rowsToItems(rows){
+  if(!rows.length)return[];
+  let m={code:0,call:1,name:2,ctry:3},start=0;
+  const h=rows[0].map(norm),find=(...k)=>h.findIndex(x=>k.some(y=>x.includes(y)));
+  if(h.some(x=>['code','icao','ident','designator'].some(k=>x.includes(k)))){
+    start=1;const f={code:find('code','icao','ident','designator'),call:find('callsign','telephony','radio'),name:find('maatschappij','airline','naam','name','operator'),ctry:find('land','country')};
+    for(const k in m)if(f[k]>=0)m[k]=f[k];
+  }
+  const out=[];
+  for(let i=start;i<rows.length;i++){const r=rows[i];
+    const code=String(r[m.code]||'').trim().toUpperCase(),call=String(r[m.call]||'').trim();
+    if(!code||!call)continue;
+    out.push({code,call,name:String(r[m.name]||'').trim(),ctry:enC(String(r[m.ctry]||'').trim())});
+  }
+  return out;
+}
+async function inflateRaw(u8){const ds=new DecompressionStream('deflate-raw');const w=ds.writable.getWriter();w.write(u8);w.close();return new Uint8Array(await new Response(ds.readable).arrayBuffer())}
+async function unzip(buf){
+  const dv=new DataView(buf),u8=new Uint8Array(buf);let e=-1;
+  for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-70000);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}
+  if(e<0)throw new Error('not a zip');
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const files={};
+  for(let k=0;k<n;k++){
+    if(dv.getUint32(p,true)!==0x02014b50)break;
+    const meth=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(u8.subarray(p+46,p+46+nl));
+    files[name]={meth,cs,lo};p+=46+nl+xl+cl;
+  }
+  const get=async name=>{const f=files[name];if(!f)return null;const ln=dv.getUint16(f.lo+26,true),lx=dv.getUint16(f.lo+28,true),s=f.lo+30+ln+lx,d=u8.subarray(s,s+f.cs);return new TextDecoder().decode(f.meth===0?d:await inflateRaw(d))};
+  return{names:Object.keys(files),get};
+}
+async function xlsxToRows(buf){
+  const z=await unzip(buf),P=s=>new DOMParser().parseFromString(s,'application/xml');
+  const sst=[];const ss=await z.get('xl/sharedStrings.xml');
+  if(ss)P(ss).querySelectorAll('si').forEach(si=>sst.push([...si.querySelectorAll('t')].map(x=>x.textContent).join('')));
+  const sheets=z.names.filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort((a,b)=>parseInt(a.match(/\d+/)[0])-parseInt(b.match(/\d+/)[0]));
+  if(!sheets.length)throw new Error('no worksheet');
+  const doc=P(await z.get(sheets[0])),rows=[];
+  doc.querySelectorAll('sheetData > row').forEach(r=>{
+    const row=[];
+    r.querySelectorAll('c').forEach(c=>{
+      const ref=c.getAttribute('r')||'';let col=0;for(const ch of ref.replace(/[0-9]/g,''))col=col*26+ch.charCodeAt(0)-64;col--;
+      const ty=c.getAttribute('t'),v=c.querySelector('v');let val='';
+      if(ty==='s'&&v)val=sst[+v.textContent]||'';else if(ty==='inlineStr')val=[...c.querySelectorAll('t')].map(x=>x.textContent).join('');else if(v)val=v.textContent;
+      row[col]=val;
+    });
+    for(let i=0;i<row.length;i++)if(row[i]==null)row[i]='';
+    rows.push(row);
+  });
+  return rows.filter(r=>r.some(x=>String(x).trim()));
+}
+function applyImport(items,mode){
+  if(!items.length){toast('No usable rows found (code + callsign required).');return}
+  let add=0,upd=0;
+  if(mode==='replace'){const seen=new Set();S.items=items.filter(i=>!seen.has(i.code)&&seen.add(i.code));add=S.items.length}
+  else{items.forEach(i=>{const ix=S.items.findIndex(x=>x.code===i.code);if(ix>=0){S.items[ix]=Object.assign({},S.items[ix],i);upd++}else{S.items.push(i);add++}})}
+  S.starter=false;save();render();toast(add+' added'+(upd?', '+upd+' updated':''));
+}
+const impMode=()=>(document.querySelector('input[name=imode]:checked')||{}).value||'merge';
+async function importSheetUrl(){
+  const v=(($('#gsurl')||{}).value||'').trim();const m=v.match(/\/d\/([a-zA-Z0-9_-]+)/)||v.match(/^([a-zA-Z0-9_-]{25,})$/);
+  if(!m){toast('Paste the full link of your Google Sheet.');return}
+  const g=v.match(/[#&?]gid=(\d+)/);const mode=impMode();
+  const url='https://docs.google.com/spreadsheets/d/'+m[1]+'/gviz/tq?tqx=out:csv'+(g?'&gid='+g[1]:'');
+  toast('Fetching sheet…');
+  try{const r=await fetch(url);if(!r.ok)throw new Error(r.status);const txt=await r.text();if(/^\s*<(!doctype|html)/i.test(txt))throw new Error('login');applyImport(rowsToItems(parseCSV(txt)),mode)}
+  catch(e){toast('Could not fetch it. Set sharing to “anyone with the link can view”, or download the sheet as .xlsx/.csv and upload the file.')}
+}
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC[(c^u8[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function zipStore(files){
+  const enc=new TextEncoder(),parts=[],cd=[];let off=0;
+  const u16=n=>[n&255,(n>>8)&255],u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>>24)&255];
+  for(const[name,text]of files){
+    const nm=enc.encode(name),data=enc.encode(text),crc=crc32(data);
+    const lh=new Uint8Array([0x50,0x4b,3,4,...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(data.length),...u32(data.length),...u16(nm.length),...u16(0)]);
+    parts.push(lh,nm,data);
+    cd.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(data.length),...u32(data.length),...u16(nm.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nm);
+    off+=lh.length+nm.length+data.length;
+  }
+  const cdLen=cd.reduce((a,b)=>a+b.length,0);
+  const end=new Uint8Array([0x50,0x4b,5,6,0,0,0,0,...u16(files.length),...u16(files.length),...u32(cdLen),...u32(off),0,0]);
+  return new Blob([...parts,...cd,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function toXLSX(){
+  const x=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'');
+  const col='ABCD';
+  const rows=[['code','callsign','airline','country']].concat(S.items.map(i=>[i.code,i.call,i.name||'',i.ctry||'']));
+  const sd=rows.map((r,ri)=>'<row r="'+(ri+1)+'">'+r.map((v,ci)=>v===''?'':'<c r="'+col[ci]+(ri+1)+'" t="inlineStr"><is><t xml:space="preserve">'+x(v)+'</t></is></c>').join('')+'</row>').join('');
+  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  return zipStore([
+    ['[Content_Types].xml',H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'],
+    ['_rels/.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ['xl/workbook.xml',H+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Callsigns" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ['xl/_rels/workbook.xml.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'],
+    ['xl/worksheets/sheet1.xml',H+'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+sd+'</sheetData></worksheet>']
+  ]);
+}
+function copyTable(){
+  const tsv=S.items.map(i=>[i.code,i.call,i.name||'',i.ctry||''].map(v=>String(v).replace(/[\t\r\n]+/g,' ')).join('\t')).join('\n');
+  const fallback=()=>{const a=document.createElement('textarea');a.value=tsv;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}a.remove();toast(ok?'Copied: paste into cell A1 of a Google Sheet.':'Copy failed, use the Excel export.')};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(tsv).then(()=>toast('Copied: paste into cell A1 of a Google Sheet.'),fallback);else fallback();
+}
+function ask(msg,yes){
+  const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px';
+  o.innerHTML='<div class="card" style="max-width:360px;width:100%"><div style="margin-bottom:6px">'+esc(msg)+'</div><div class="grid2"><button class="btn sec" data-no>Cancel</button><button class="btn" data-yes>Yes</button></div></div>';
+  o.addEventListener('click',e=>{if(e.target.matches('[data-yes]')){o.remove();yes()}else if(e.target.matches('[data-no]')||e.target===o)o.remove()});
+  document.body.appendChild(o);
+}
+function toCSV(){
+  const q=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
+  return '﻿'+['code;callsign;airline;country'].concat(S.items.map(i=>[i.code,i.call,i.name,i.ctry].map(q).join(';'))).join('\r\n');
+}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:type||'text/plain'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+
+/* ============ RENDER ============ */
+function dots(code){const p=prog(code),b=p?p.box:0;let h='<span class="dots" title="level '+b+'/5">';for(let i=1;i<=5;i++)h+='<s class="'+(i<=b?'f':'')+'"></s>';return h+'</span>'}
+function nav(){return '<nav>'+[['home','🛫','Practice'],['lib','📚','Library'],['stats','📊','Statistics']].map(x=>'<button data-act="go" data-v="'+x[0]+'" class="'+(view===x[0]?'on':'')+'"><b>'+x[1]+'</b>'+x[2]+'</button>').join('')+'</nav>'}
+
+function renderHome(){
+  const tot=S.items.length,kn=knownCount(),seen=S.items.filter(isSeen).length,t7=totals(7),hp=hardPool().length;
+  let h='<h1>✈️ Callsign Trainer</h1><div class="mu small">Learn the telephony callsigns of airlines</div>';
+  if(memOnly)h+='<div class="banner">⚠️ Saving in the browser does not work here: progress will be lost when you close it. Use a normal browser tab (not private/incognito).</div>';
+  h+='<div class="chips" style="margin-top:12px"><div class="chip"><b>'+kn+'/'+tot+'</b><span>known</span></div><div class="chip"><b>'+(t7.pct==null?'–':t7.pct+'%')+'</b><span>correct (7d)</span></div><div class="chip"><b>'+streak()+'🔥</b><span>day streak</span></div></div>';
+  h+='<div class="pbar" style="margin:12px 0 4px"><i style="width:'+(tot?Math.round(kn/tot*100):0)+'%"></i></div><div class="small mu">'+seen+' of '+tot+' seen · '+S.xp+' XP</div>';
+  h+='<button class="btn" data-act="start" data-v="mix">▶ Practice ('+S.set.len+' questions)</button>';
+  h+='<div class="grid2"><button class="btn sec" data-act="start" data-v="hard">💪 Difficult ('+hp+')</button><button class="btn sec" data-act="start" data-v="new">✨ New only</button></div>';
+  h+='<details class="card"><summary>⚙️ Settings</summary><h2 style="margin-top:10px">Question types</h2>';
+  for(const k in TYPES){const dis=TYPES[k].tts&&!canTTS;h+='<label class="ck"><input type="checkbox" data-set="type" data-k="'+k+'" '+(S.set.types[k]?'checked':'')+(dis?' disabled':'')+'> '+TYPES[k].label+(dis?' (not supported)':'')+'</label>'}
+  h+='<h2>Answer mode</h2><select data-set="mode"><option value="auto"'+(S.set.mode==='auto'?' selected':'')+'>Automatic: new = multiple choice, then typing/speaking</option><option value="type"'+(S.set.mode==='type'?' selected':'')+'>Always type / speak</option><option value="mc"'+(S.set.mode==='mc'?' selected':'')+'>Always multiple choice</option></select>';
+  h+='<h2>Questions per round</h2><select data-set="len">'+[5,10,15,20,30].map(n=>'<option'+(S.set.len===n?' selected':'')+'>'+n+'</option>').join('')+'</select>';
+  h+='<label class="ck" style="margin-top:8px"><input type="checkbox" data-set="auto" '+(S.set.auto?'checked':'')+(canTTS?'':' disabled')+'> Read the callsign aloud automatically with each question</label>';
+  h+='<div class="small mu">Voice input: '+(SR?'available (🎤 next to the input field, English).':'not supported in this browser – use Chrome or Edge.')+'</div></details>';
+  return h;
+}
+function renderSession(){
+  const q=sess.cur,tot=sess.queue.length,pct=Math.round(sess.i/tot*100),fb=sess.fb;
+  let h='<div class="top"><button class="x" data-act="quit">✕</button><div class="pbar"><i style="width:'+pct+'%"></i></div><span class="small mu">'+S.xp+' XP</span></div>';
+  h+='<div class="qcard"><div class="qlabel">'+esc(q.label)+'</div>';
+  if(q.pkind==='audio')h+='<button class="spk big" data-act="say">🔊</button><div class="small mu" style="margin-top:6px">Tap to hear again</div>';
+  else{h+='<div class="prompt">'+esc(q.prompt)+'</div>';if(q.pkind==='call'&&canTTS)h+='<button class="spk" data-act="say">🔊</button>'}
+  h+='</div>';
+  if(q.mc){
+    h+='<div class="opts">'+q.opts.map((o,i)=>{let c='opt';if(fb){if(norm(o)===norm(q.show))c+=' good';else if(norm(o)===norm(fb.given))c+=' wrong'}return '<button class="'+c+'" data-act="opt" data-v="'+i+'" '+(fb?'disabled':'')+'><i>'+(i+1)+'</i>'+esc(o)+'</button>'}).join('')+'</div>';
+    if(!fb)h+='<button class="btn sec sm" data-act="skip" style="margin-top:12px">I do not know</button>';
+  }else{
+    h+='<div class="inp"><input id="ans" type="text" autocomplete="off" autocapitalize="'+(q.akind==='code'?'characters':'off')+'" style="'+(q.akind==='code'?'text-transform:uppercase;letter-spacing:2px;font-weight:700':'')+'" autocorrect="off" spellcheck="false" placeholder="'+(q.akind==='code'?'ICAO code…':q.akind==='call'?'Callsign…':'Airline…')+'" '+(fb?'disabled value="'+esc(fb.given)+'"':'')+'>'+(SR&&!fb?'<button class="mic" data-act="mic" title="Speak your answer">🎤</button>':'')+'</div>';
+    if(!fb)h+='<button class="btn" data-act="check">Check</button><button class="btn sec sm" data-act="skip">I do not know</button>';
+  }
+  if(fb){
+    const it=q.item;
+    h+='<div style="height:150px"></div><div class="fb '+(fb.ok?'ok':'bad')+'"><div><h3>'+(fb.ok?(fb.near?'Correct! (watch the spelling)':'Correct! 🎉'):'Not quite…')+'</h3><div>'+(fb.ok&&!fb.near?'':'Correct answer: <b>'+esc(q.accept.join(' / '))+'</b><br>')+'<span class="small"><b>'+esc(it.code)+'</b> = '+esc(prim(it.call))+(it.name?' – '+esc(prim(it.name)):'')+(it.ctry?' ('+esc(it.ctry)+')':'')+'</span> '+(canTTS?'<button class="ib" data-act="say">🔊</button>':'')+'</div><button class="btn '+(fb.ok?'ok':'bad')+'" data-act="next">Continue</button></div></div>';
+  }
+  return h;
+}
+function renderSummary(){
+  const tot=sess.ok+sess.bad,pct=tot?Math.round(sess.ok/tot*100):0,nk=knownCount()-sess.startKnown,missed=Object.values(sess.missed);
+  let h='<h1>Round complete!</h1><div class="big">'+pct+'%</div><div class="chips"><div class="chip"><b>'+sess.ok+'</b><span>correct</span></div><div class="chip"><b>'+sess.bad+'</b><span>wrong</span></div><div class="chip"><b>'+(nk>=0?'+':'')+nk+'</b><span>newly known</span></div></div>';
+  if(missed.length){h+='<h2>Review again</h2><div class="card">'+missed.map(it=>'<div class="item"><div class="c">'+esc(it.code)+'</div><div class="t"><div>'+esc(prim(it.call))+'</div><div class="small mu">'+esc(it.name||'')+'</div></div></div>').join('')+'</div>'}
+  h+='<button class="btn" data-act="start" data-v="'+sess.kind+'">Another round</button><button class="btn sec" data-act="go" data-v="home">Done</button>';
+  return h;
+}
+function listHTML(){
+  const q=norm(libQ);let arr=S.items.slice().sort((a,b)=>a.code<b.code?-1:1);
+  if(q)arr=arr.filter(i=>norm(i.code+i.call+i.name+i.ctry).includes(q));
+  const more=arr.length-200;arr=arr.slice(0,200);
+  return arr.map(i=>'<div class="item"><div class="c">'+esc(i.code)+'</div><div class="t"><div>'+esc(i.call)+'</div><div class="small mu">'+esc(i.name||'')+(i.ctry?' · '+esc(i.ctry):'')+'</div></div>'+dots(i.code)+(canTTS?'<button class="ib" data-act="sayit" data-v="'+esc(i.code)+'">🔊</button>':'')+'<button class="ib" data-act="edit" data-v="'+esc(i.code)+'">✏️</button><button class="ib" data-act="del" data-v="'+esc(i.code)+'">🗑</button></div>').join('')+(more>0?'<div class="small mu" style="padding:8px">… '+more+' more, use search.</div>':'')||'<div class="small mu" style="padding:8px">Nothing found.</div>';
+}
+function renderLib(){
+  let h='<h1>📚 Library</h1><div class="small mu">'+S.items.length+' callsigns</div>';
+  if(S.starter)h+='<div class="banner">This is a <b>starter list</b> (unofficial, please verify it). Import your own list (CSV) below to replace it.</div>';
+  h+='<div class="card"><b>'+(form.editing?'Edit callsign':'Add new callsign')+'</b><div class="grid2" style="margin-top:8px"><input id="f_code" placeholder="Code (RYR)" maxlength="4" value="'+esc(form.code)+'"><input id="f_call" placeholder="Callsign (Ryanair)" value="'+esc(form.call)+'"><input id="f_name" placeholder="Airline (optional)" value="'+esc(form.name)+'"><input id="f_ctry" placeholder="Country (optional)" value="'+esc(form.ctry)+'"></div><div class="small mu" style="margin-top:4px">Multiple valid callsigns? Separate them with / (e.g. Speedbird / Shuttle). Airline and country are optional and are not used in the quiz, only shown in the library.</div><button class="btn" data-act="saveitem">'+(form.editing?'Save':'Add')+'</button>'+(form.editing?'<button class="btn sec" data-act="cancel">Cancel</button>':'')+'</div>';
+  h+='<details class="card" id="impbox"'+(libOpen?' open':'')+'><summary>⬇️⬆️ Import / export / backup</summary><h2 style="margin-top:10px">Import list from your sheet</h2><div class="small mu">Columns: code, callsign, airline, country (with or without header row; first tab only). Supported: Excel (.xlsx) and CSV. In Google Sheets: File → Download → Microsoft Excel (.xlsx).</div><label class="ck"><input type="radio" name="imode" value="merge" checked> Merge (add new, update existing)</label><label class="ck"><input type="radio" name="imode" value="replace"> Replace everything (progress is kept per code)</label><input type="file" id="csvfile" accept=".xlsx,.csv,.tsv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"><div class="small mu" style="margin-top:8px">Or directly from Google Sheets via link (the sheet must be shared with “anyone with the link”):</div><div class="inp" style="margin-top:6px"><input id="gsurl" placeholder="https://docs.google.com/spreadsheets/d/…"><button class="btn sm" data-act="gsimport" style="margin:0">Fetch</button></div>';
+  h+='<h2>Export to your sheet</h2><div class="small mu">Excel file: open it in Excel or upload it to Google Drive (opens as a Google Sheet). Or copy the table and paste it into cell A1 of an empty sheet.</div><button class="btn sec sm" data-act="expxlsx">List as Excel (.xlsx)</button><button class="btn sec sm" data-act="copytable">Copy as table</button><button class="btn sec sm" data-act="expcsv">List as CSV</button><h2>Backup</h2><button class="btn sec sm" data-act="expjson">Full backup (list + progress)</button><h2>Restore backup</h2><input type="file" id="jsonfile" accept=".json,application/json"><h2>Reset</h2><button class="btn bad sm" data-act="resetprog">Clear progress</button><button class="btn bad sm" data-act="resetall">Reset everything to default list</button></details>';
+  h+='<input id="search" placeholder="🔍 Search…" value="'+esc(libQ)+'" style="margin:6px 0"><div class="card" id="list" style="padding:4px 14px">'+listHTML()+'</div>';
+  return h;
+}
+function renderStats(){
+  const tot=S.items.length,all=totals(),t7=totals(7);
+  const by=[0,0,0,0,0,0];S.items.forEach(i=>{const p=prog(i.code);by[p?p.box:0]++});
+  const kn=knownCount(),learn=S.items.filter(i=>isSeen(i)&&!isKnown(i)).length,nw=S.items.filter(i=>!isSeen(i)).length;
+  let h='<h1>📊 Statistics</h1><div class="chips" style="margin-top:10px"><div class="chip"><b>'+kn+'</b><span>known</span></div><div class="chip"><b>'+learn+'</b><span>learning</span></div><div class="chip"><b>'+nw+'</b><span>new</span></div></div>';
+  h+='<div class="chips" style="margin-top:8px"><div class="chip"><b>'+(all.pct==null?'–':all.pct+'%')+'</b><span>correct (total)</span></div><div class="chip"><b>'+(t7.pct==null?'–':t7.pct+'%')+'</b><span>correct (7 days)</span></div><div class="chip"><b>'+all.n+'</b><span>answers</span></div></div>';
+  const days=[];for(let k=13;k>=0;k--){const d=new Date();d.setDate(d.getDate()-k);const l=S.log[dkey(d)]||{n:0,ok:0};days.push({n:l.n,ok:l.ok,l:d.getDate()})}
+  const mx=Math.max(1,...days.map(d=>d.n));
+  h+='<h2>Last 14 days</h2><div class="card"><div class="bars">'+days.map(d=>'<div style="height:'+Math.round(d.n/mx*100)+'%"><i style="height:'+(d.n?Math.round(d.ok/d.n*100):0)+'%"></i></div>').join('')+'</div><div class="lbl">'+days.map(d=>'<span>'+d.l+'</span>').join('')+'</div><div class="small mu" style="margin-top:6px">Height = number of answers, green = correct share.</div></div>';
+  h+='<h2>Per level</h2><div class="card">'+by.map((n,b)=>'<div class="row small" style="margin:4px 0"><span style="flex:0 0 90px">Level '+b+(b>=4?' ✓':'')+'</span><div class="pbar" style="flex:1"><i style="width:'+(tot?Math.round(n/tot*100):0)+'%"></i></div><span style="flex:0 0 36px;text-align:right">'+n+'</span></div>').join('')+'<div class="small mu">Level 4–5 counts as “known”. Correct answer = +1, wrong = −2. Multiple choice takes you to level 3 at most; typing/speaking is needed for “known”.</div></div>';
+  const hard=S.items.filter(i=>{const p=prog(i.code);return p&&p.seen>=2}).map(i=>{const p=prog(i.code);return{i,p,acc:p.ok/p.seen}}).sort((a,b)=>a.acc-b.acc||b.p.seen-a.p.seen).slice(0,10);
+  h+='<h2>Hardest callsigns</h2><div class="card" style="padding:4px 14px">'+(hard.length?hard.map(x=>'<div class="item"><div class="c">'+esc(x.i.code)+'</div><div class="t"><div>'+esc(prim(x.i.call))+'</div><div class="small mu">'+esc(x.i.name||'')+'</div></div><div class="small">'+Math.round(x.acc*100)+'% <span class="mu">('+x.p.seen+'×)</span></div></div>').join(''):'<div class="small mu" style="padding:8px">Not enough data yet.</div>')+'</div>';
+  return h;
+}
+function render(){
+  const app=$('#app');let h='';
+  if(view==='home')h=renderHome();else if(view==='session')h=renderSession();else if(view==='summary')h=renderSummary();else if(view==='lib')h=renderLib();else if(view==='stats')h=renderStats();
+  app.innerHTML=h+(view==='session'||view==='summary'?'':nav());
+  if(view==='session'&&sess.cur&&!sess.cur.mc&&!sess.fb){const i=$('#ans');if(i&&!('ontouchstart' in window&&false))i.focus()}
+  if(view!=='session')window.scrollTo(0,0);
+}
+
+/* ============ EVENTS ============ */
+function readForm(){['code','call','name','ctry'].forEach(k=>{const e=$('#f_'+k);if(e)form[k]=e.value})}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act,v=b.dataset.v;
+  if(a==='go'){if(view==='lib')readForm();view=v;render()}
+  else if(a==='start')startSession(v);
+  else if(a==='quit'){try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}view='home';sess=null;render();toast('Round stopped – your progress is saved.')}
+  else if(a==='say'){if(sess&&sess.cur)say(prim(sess.cur.item.call))}
+  else if(a==='sayit'){const it=S.items.find(x=>x.code===v);if(it)say(prim(it.call))}
+  else if(a==='opt'){const q=sess.cur;submit(q.opts[+v],'mc')}
+  else if(a==='check'){const i=$('#ans');submit(i?i.value:'','type')}
+  else if(a==='skip')submit('','skip');
+  else if(a==='next')next();
+  else if(a==='mic')listen();
+  else if(a==='saveitem')saveItem();
+  else if(a==='gsimport')importSheetUrl();
+  else if(a==='cancel'){form={code:'',call:'',name:'',ctry:'',editing:null};render()}
+  else if(a==='edit'){const it=S.items.find(x=>x.code===v);if(it){form={code:it.code,call:it.call,name:it.name||'',ctry:it.ctry||'',editing:it.code};render();window.scrollTo(0,0)}}
+  else if(a==='del'){ask('Delete callsign '+v+'?',()=>{S.items=S.items.filter(x=>x.code!==v);delete S.prog[v];save();$('#list').innerHTML=listHTML()})}
+  else if(a==='expcsv')download('callsigns.csv',toCSV(),'text/csv');
+  else if(a==='expxlsx'){const bl=toXLSX(),u=document.createElement('a');u.href=URL.createObjectURL(bl);u.download='callsigns.xlsx';document.body.appendChild(u);u.click();setTimeout(()=>{URL.revokeObjectURL(u.href);u.remove()},500)}
+  else if(a==='copytable')copyTable();
+  else if(a==='expjson')download('callsign-trainer-backup-'+dkey(new Date())+'.json',JSON.stringify(S),'application/json');
+  else if(a==='resetprog'){ask('Clear all progress and statistics? (The list stays.)',()=>{S.prog={};S.log={};S.xp=0;save();render();toast('Progress cleared')})}
+  else if(a==='resetall'){ask('Reset everything to the default list?',()=>{S=fresh();save();render();toast('Reset done')})}
+});
+function saveItem(){
+  readForm();
+  const code=form.code.trim().toUpperCase(),call=form.call.trim();
+  if(!/^[A-Z0-9]{2,4}$/.test(code)){toast('Code: 2 to 4 letters/digits.');return}
+  if(!call){toast('Enter a callsign.');return}
+  const it={code,call,name:form.name.trim(),ctry:form.ctry.trim()};
+  const old=form.editing;
+  if(old&&old!==code){S.items=S.items.filter(x=>x.code!==old);if(S.prog[old]){S.prog[code]=S.prog[old];delete S.prog[old]}}
+  const ix=S.items.findIndex(x=>x.code===code);
+  if(ix>=0){S.items[ix]=it;toast(code+' updated')}else{S.items.push(it);toast(code+' added')}
+  form={code:'',call:'',name:'',ctry:'',editing:null};save();render();
+}
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.set==='type'){S.set.types[t.dataset.k]=t.checked?1:0;if(!Object.values(S.set.types).some(Boolean)){S.set.types.c2s=1;render()}save()}
+  else if(t.dataset.set==='mode'){S.set.mode=t.value;save()}
+  else if(t.dataset.set==='len'){S.set.len=+t.value;save();render()}
+  else if(t.dataset.set==='auto'){S.set.auto=t.checked;save()}
+  else if(t.id==='csvfile'&&t.files[0]){
+    const f=t.files[0],mode=impMode();
+    if(/\.xlsx$/i.test(f.name)){
+      f.arrayBuffer().then(xlsxToRows).then(rows=>applyImport(rowsToItems(rows),mode)).catch(()=>toast('Could not read the Excel file. Try CSV.'));
+    }else{
+      const fr=new FileReader();fr.onload=()=>applyImport(rowsToItems(parseCSV(String(fr.result))),mode);fr.readAsText(f);
+    }
+    t.value='';
+  }
+  else if(t.id==='jsonfile'&&t.files[0]){
+    const fr=new FileReader();fr.onload=()=>{try{const r=JSON.parse(String(fr.result));if(!r.items)throw 0;ask('Replace current data with this backup?',()=>{S=Object.assign(fresh(),r);S.set=Object.assign(fresh().set,r.set||{});save();render();toast('Backup restored')})}catch(e){toast('Invalid backup file.')}};fr.readAsText(t.files[0]);
+  }
+});
+document.addEventListener('toggle',e=>{if(e.target.id==='impbox')libOpen=e.target.open},true);
+document.addEventListener('input',e=>{
+  if(e.target.id==='ans'&&sess&&sess.cur&&sess.cur.akind==='code'){const el=e.target,s=el.selectionStart,u=el.value.toUpperCase();if(u!==el.value){el.value=u;try{el.setSelectionRange(s,s)}catch(x){}}}
+  if(e.target.id==='search'){libQ=e.target.value;const l=$('#list');if(l)l.innerHTML=listHTML()}
+});
+document.addEventListener('keydown',e=>{
+  if(view!=='session'||!sess||!sess.cur)return;
+  if(e.key==='Enter'){e.preventDefault();if(sess.fb)next();else if(!sess.cur.mc){const i=$('#ans');submit(i?i.value:'','type')}}
+  else if(sess.cur.mc&&!sess.fb&&/^[1-4]$/.test(e.key)){const o=sess.cur.opts[+e.key-1];if(o!=null)submit(o,'mc')}
+});
+
+render();
+})();
+</script>
+</body>
+</html>
