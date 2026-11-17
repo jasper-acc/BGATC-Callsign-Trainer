@@ -10,6 +10,8 @@
 @media(prefers-color-scheme:dark){:root{--bg:#0e0f1e;--card:#181a30;--tx:#e8e9f6;--mu:#9a9cc0;--pr:#5c5ed6;--prd:#3a3b99;--lg:#b4b6ff;--ok:#4cc277;--okbg:#153324;--bad:#ff7070;--badbg:#3a1d1f;--bd:#2c2e4d;--soft:#22243f}}
 .logo{display:block;color:var(--lg);width:100%;height:auto}
 .hd{display:flex;align-items:center;gap:14px;margin:2px 0 6px}.hd .lg{flex:0 0 112px}.hd h1{margin:0}
+.readme p,.readme li{font-size:14px}.readme ul{padding-left:20px;margin:6px 0}.readme code{background:var(--soft);padding:1px 5px;border-radius:5px;font-size:13px}
+.disc{text-align:center;font-size:12px;color:var(--mu);margin:14px 8px 4px}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 #app{max-width:560px;margin:0 auto;padding:14px 14px 90px;min-height:100vh}
@@ -359,6 +361,25 @@ function renderHome(){
   h+='<h2>Questions per round</h2><select data-set="len">'+[5,10,15,20,30].map(n=>'<option'+(S.set.len===n?' selected':'')+'>'+n+'</option>').join('')+'</select>';
   h+='<label class="ck" style="margin-top:8px"><input type="checkbox" data-set="auto" '+(S.set.auto?'checked':'')+(canTTS?'':' disabled')+'> Read the callsign aloud automatically with each question</label>';
   h+='<div class="small mu">Voice input: '+(SR?'available (🎤 next to the input field, English).':'not supported in this browser – use Chrome or Edge.')+'</div></details>';
+  h+='<details class="card readme"><summary>📖 Readme</summary>'
+   +'<p>A Duolingo-style trainer for aircraft <b>ICAO designators ↔ radio callsigns</b> (e.g. <code>RYR</code> = <i>Ryanair</i>). One self-contained HTML file: no server, no account, no install.</p>'
+   +'<h2>Features</h2><ul>'
+   +'<li>443 built-in callsigns, with airline name and country shown in the Library (not in the quiz)</li>'
+   +'<li>Three question types: code → callsign, callsign → code, listening → code</li>'
+   +'<li>Answer by typing or by speaking (NATO alphabet understood), or multiple choice</li>'
+   +'<li>Spaced repetition: hard callsigns come back more often; new ones are introduced gradually</li>'
+   +'<li>Statistics: known callsigns, accuracy, XP</li>'
+   +'<li>Add your own callsigns; use <code>/</code> to separate multiple valid callsigns (e.g. <code>SPEEDBIRD / BEELINE</code>)</li>'
+   +'<li>Import from CSV, Excel (.xlsx) or a Google Sheets link; export to .xlsx, CSV, clipboard or JSON backup</li>'
+   +'<li>Code answers are always uppercase</li></ul>'
+   +'<h2>Use it</h2><ul>'
+   +'<li><b>Phone / tablet / computer:</b> download the file and open it in a browser.</li>'
+   +'<li><b>Voice input</b> works best in Chrome or Edge (Web Speech API).</li></ul>'
+   +'<h2>Your data</h2><p>Everything is stored locally in your browser (<code>localStorage</code>). Nothing is sent anywhere. Progress is per browser and per device; use the JSON backup in the Library to move it. Clearing browser data erases your progress.</p>'
+   +'<h2>Data sources and caveats</h2><p>Callsigns come from a personal list. Airline names and countries were matched from public datasets (vradar standing-data, OpenFlights) and are not official; some may be missing or outdated.</p>'
+   +'<h2>Import format</h2><p>Columns (header optional): <code>code</code>, <code>callsign</code>, <code>airline</code>, <code>country</code>. Delimiters <code>;</code>, <code>,</code> or tab are detected automatically. A Google Sheets link works if the sheet is shared as "anyone with the link"; otherwise download it as .xlsx and import the file.</p>'
+   +'</details>';
+  h+='<div class="disc">Disclaimer: 2026 copyright BGATC - built by Jasper Beyst, AI assisted.</div>';
   return h;
 }
 function renderSession(){
